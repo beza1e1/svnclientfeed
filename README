@@ -1,0 +1,10 @@
+SVNClientFeed
+
+Generates an RSS Feed containing an svn commit log.
+Can be used from a client (unlike svn2feed).
+
+== Usage ==
+
+./svnclientfeed <SVNURL>
+
+
