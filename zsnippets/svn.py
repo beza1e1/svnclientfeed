@@ -33,7 +33,13 @@ def _read_status_line(line):
 	return r,a,d,l
 
 def _get_commit(svn_url, revision):
-	diff = "\n".join(execute("svn diff -c%d %s" % (revision, svn_url)))
+	diff = list()
+	modified = list()
+	for line in execute("svn diff -c%d %s" % (revision, svn_url)):
+		if line.startswith("Index: "):
+			modified.append(line[7:])
+		diff.append(line)
+	diff = "\n".join(diff)
 	lines = execute("svn log -c%d %s" % (revision, svn_url))
 	while not lines.next().startswith("---"):
 		pass
@@ -48,6 +54,7 @@ def _get_commit(svn_url, revision):
 		msg.append(line)
 		line = lines.next()
 	commit['message'] = "\n".join(msg)
+	commit['modified'] = modified
 	return commit
 
 def _get_logs(svn_url):
