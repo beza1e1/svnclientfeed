@@ -1,0 +1,47 @@
+#!/usr/bin/env python
+
+from zsnippets.svn import SVNRepo, htmlize_diff
+
+import optparse
+import xml.etree.ElementTree as ET
+import sys
+
+_OPTS = optparse.OptionParser(version="%prog 0.1", usage="%prog [options]")
+_OPTS.add_option("-o", "--output", dest="output", default="feed.rss",
+		        help="Write output to FILE", metavar="FILE")
+
+def htmlize_body(body):
+	body = body.replace("\n", "<br/>\n")
+	return body
+
+def print_feed(url, out):
+	R = SVNRepo(url)
+	rss = ET.Element("rss")
+	rss.set("version", "2.0")
+	channel = ET.SubElement(rss, "channel")
+	for rev in R.get_revisions():
+		commit = R.get_commit(rev)
+		item = ET.SubElement(channel, "item")
+		msg_title = commit['message'].split("\n")[0]
+		title = "r%d: %s" % (rev, msg_title)
+		ET.SubElement(item, "title").text = title
+		ET.SubElement(item, "author").text = commit['author']
+		ET.SubElement(item, "pubDate").text = commit['date'].strftime("%a, %d %B %Y %H:%M:%S %Z")
+		body = "%s<br/>\n<pre>\n%s</pre>" %\
+				(htmlize_body(commit['message']), htmlize_diff(commit['diff']))
+		ET.SubElement(item, "description").text = body
+	tree = ET.ElementTree(rss)
+	tree.write(out, encoding="utf-8")
+
+def main(options, url):
+	fh = open(options.output, 'w')
+	print_feed(url, fh)
+	fh.close()
+
+if __name__ == "__main__":
+	options, args = _OPTS.parse_args()
+	if len(args) == 1:
+		main(options, args[0])
+	else:
+		print "Append -h for help"
+
