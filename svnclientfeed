@@ -19,14 +19,20 @@ def print_feed(url, out):
 	rss = ET.Element("rss")
 	rss.set("version", "2.0")
 	channel = ET.SubElement(rss, "channel")
+	ET.SubElement(channel, "title").text = "SVNClientFeed"
+	ET.SubElement(channel, "description").text = "Feed generated from %s" % url
+	ET.SubElement(channel, "link").text = url
 	for rev in R.get_revisions():
 		commit = R.get_commit(rev)
 		item = ET.SubElement(channel, "item")
 		msg_title = commit['message'].split("\n")[0]
 		title = "r%d: %s" % (rev, msg_title)
 		ET.SubElement(item, "title").text = title
-		ET.SubElement(item, "author").text = commit['author']
-		ET.SubElement(item, "pubDate").text = commit['date'].strftime("%a, %d %B %Y %H:%M:%S %Z")
+		author = commit['author']
+		if not "@" in author:
+			author += "@libfirm.org (%s)" % author
+		ET.SubElement(item, "author").text = author
+		ET.SubElement(item, "pubDate").text = commit['date'].strftime("%a, %d %b %Y %H:%M:%S +0000")
 		body = "%s<br/>\n<pre>\n%s</pre>" %\
 				(htmlize_body(commit['message']), htmlize_diff(commit['diff']))
 		ET.SubElement(item, "description").text = body
