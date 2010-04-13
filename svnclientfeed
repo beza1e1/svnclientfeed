@@ -14,6 +14,15 @@ def htmlize_body(body):
 	body = body.replace("\n", "<br/>\n")
 	return body
 
+_STYLE = """\
+<style type="text/css">
+	span.add    { background-color: #afa; }
+	span.remove { background-color: #faa; }
+	span.jump,
+	span.meta   { color: #007; }
+</style>
+"""
+
 def print_feed(url, out):
 	R = SVNRepo(url)
 	rss = ET.Element("rss")
@@ -33,8 +42,8 @@ def print_feed(url, out):
 			author += "@libfirm.org (%s)" % author
 		ET.SubElement(item, "author").text = author
 		ET.SubElement(item, "pubDate").text = commit['date'].strftime("%a, %d %b %Y %H:%M:%S +0000")
-		body = "%s<br/>\n<pre>\n%s</pre>" %\
-				(htmlize_body(commit['message']), htmlize_diff(commit['diff']))
+		body = "%s<br/>\n%s\n<pre>\n%s</pre>" %\
+				(htmlize_body(commit['message']), _STYLE, htmlize_diff(commit['diff']))
 		ET.SubElement(item, "description").text = body
 	tree = ET.ElementTree(rss)
 	tree.write(out, encoding="utf-8")
