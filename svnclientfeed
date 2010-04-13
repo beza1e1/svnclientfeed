@@ -44,7 +44,7 @@ def print_feed(url, out):
 		ET.SubElement(item, "pubDate").text = commit['date'].strftime("%a, %d %b %Y %H:%M:%S +0000")
 		modified = ["<li>%s</li>" % f for f in commit['modified']]
 		modified = "<ul>%s</ul>" % "\n".join(modified)
-		body = "%s<br/>\n%s<h3>Modified files</h3>%s\n<h3>Diff</h3><pre>\n%s</pre>" %\
+		body = "%s<br/>\n%s%s\n<pre>\n%s</pre>" %\
 				(htmlize_body(commit['message']), _STYLE, modified, htmlize_diff(commit['diff']))
 		ET.SubElement(item, "description").text = body
 	tree = ET.ElementTree(rss)
