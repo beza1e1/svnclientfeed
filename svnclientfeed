@@ -10,6 +10,8 @@ _OPTS = optparse.OptionParser(version="%prog 0.1", usage="%prog [options]")
 _OPTS.add_option("-o", "--output", dest="output", default="feed.rss",
 		        help="Write output to FILE", metavar="FILE")
 
+DIFF_LEN_LIMIT = 100000
+
 def htmlize_body(body):
 	body = body.replace("\n", "<br/>\n")
 	return body
@@ -44,9 +46,12 @@ def print_feed(url, out):
 		ET.SubElement(item, "pubDate").text = commit['date'].strftime("%a, %d %b %Y %H:%M:%S +0000")
 		modified = ["<li>%s</li>" % f for f in commit['modified']]
 		modified = "<ul>%s</ul>" % "\n".join(modified)
-		body = "%s<br/>\n%s%s\n<pre>\n%s</pre>" %\
-				(htmlize_body(commit['message']), _STYLE, modified, htmlize_diff(commit['diff']))
-		ET.SubElement(item, "description").text = body
+		body = "%s<br/>\n%s%s\n" %\
+				(htmlize_body(commit['message']), _STYLE, modified)
+		diff = "<pre>\n%s</pre>" % htmlize_diff(commit['diff'])
+		if len(diff) > DIFF_LEN_LIMIT:
+			diff = "<p>diff too large</p>\n"
+		ET.SubElement(item, "description").text = body + diff
 	tree = ET.ElementTree(rss)
 	tree.write(out, encoding="utf-8")
 
